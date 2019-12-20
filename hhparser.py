@@ -115,9 +115,13 @@ for url_vacancy in all_vacancies_urls[0]:
 sum_salary_count = sum(salary_list)/len(salary_list)
 sorted_key_skills = sorted(key_skills.items(), key=lambda x: int(x[1]), reverse=True)
 
+# filename = str(area_req)+'_'+str(text_req)
+# path = 'var/' #var игнорится через гитигнор, специально сюда сохраняю файлы чтобы в гит лишнее не лить
+# with open(path+filename+'.json', 'w', encoding='utf8') as file:
+#     json.dump(sorted_key_skills, file, ensure_ascii=False)
+
 filename = str(area_req)+'_'+str(text_req)
-path = 'var/' #var игнорится через гитигнор, специально сюда сохраняю файлы чтобы в гит лишнее не лить
-with open(path+filename+'.json', 'w', encoding='utf8') as file:
+with open(filename+'.json', 'w', encoding='utf8') as file:
     json.dump(sorted_key_skills, file, ensure_ascii=False)
 
 print('Всего вакансий', count_vacancies)
