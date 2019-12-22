@@ -99,9 +99,9 @@ for url_vacancy in allurls:
                 salary_list.append(salary_to)
         count_url_skils += 1
 
-print(key_skills)
-print(count_url_skils)
-print(len(salary_list))
+#print(key_skills)
+#print(count_url_skils)
+#print(len(salary_list))
 
 sum_salary_count = sum(salary_list)/len(salary_list)
 sorted_key_skills = sorted(key_skills.items(), key=lambda x: int(x[1]), reverse=True)
