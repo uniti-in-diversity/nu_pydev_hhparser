@@ -49,16 +49,13 @@ def get_vacancies_url(count_pages, url, text_req, id_area):
         params = {'text': text_req, 'area': id_area, 'page': page}
         result = requests.get(url, params=params).json()
         all_vacancies_urls.append([{'api_url': item['url']} for item in result['items']])
-    #print(all_vacancies_urls)
     return all_vacancies_urls
 
 BASE_URL = 'https://api.hh.ru/'
 url_vacancies = f'{BASE_URL}vacancies'
 url_areas = f'{BASE_URL}areas'
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36"}
-
-all_areas = requests.get(url_areas, headers=headers)
-all_areas_json = all_areas.json()
+all_areas_json = requests.get(url_areas, headers=headers).json()
 
 while True:
     area_req = input('Введите регион поиска или город, можно в любом регистре: ').lower()
@@ -70,57 +67,46 @@ while True:
     except ValueError:
         print('Город введен с ошибкой, повторите ввод:')
 
-#print(area_req)
-#print(count_area)
-
 dict_area = find_id_area(count_area, key)
 id_area = dict_area[1]
 print('Выбран город', area_req, 'id -', id_area)
 text_req = input('Введите ключевые слова для поска вакансии: ')
-
 params = {'text': text_req, 'area': id_area}
 
 result = requests.get(url_vacancies, headers=headers, params=params).json()
 count_vacancies = result['found']
 items_vacancies = result['items']
 count_pages = result['pages']
-#pprint.pprint(result)
-#items = result['items']
-#pprint.pprint(items)
 
+#print('СТРАНИЦ', count_pages)
+#print('ВАКАНСИЙ', count_vacancies)
 
-all_vacancies_urls = get_vacancies_url(count_pages, url_vacancies, text_req, id_area)
+allurls = get_vacancies_url(count_pages, url_vacancies, text_req, id_area)
+count_url_skils = 0
 key_skills = defaultdict(int)
-salary_count = []
-
-for url_vacancy in all_vacancies_urls[0]:
-    url_req_vac = url_vacancy['api_url']
-    one_vacancy = requests.get(url_req_vac).json()
-    for skil in one_vacancy['key_skills']:
-        skill_name = skil['name']
-        key_skills[skill_name] += 1
-
-salary = {}
 salary_list = []
-for url_vacancy in all_vacancies_urls[0]:
-    url_req_vac = url_vacancy['api_url']
-    one_vacancy = requests.get(url_req_vac).json()
-    salary = one_vacancy['salary']
-    #print(salary)
-    if salary is not None:
-        salary_from = salary.get('to')
-        if salary_from is not None:
-            salary_list.append(salary_from)
+for url_vacancy in allurls:
+    for url in url_vacancy:
+        url_req_vac = url['api_url']
+        one_vacancy = requests.get(url_req_vac).json()
+        for skil in one_vacancy['key_skills']:
+            skill_name = skil['name']
+            key_skills[skill_name] += 1
+        salary = one_vacancy['salary']
+        if salary is not None:
+            salary_to = salary.get('to')
+            if salary_to is not None:
+                salary_list.append(salary_to)
+        count_url_skils += 1
+
+print(key_skills)
+print(count_url_skils)
+print(len(salary_list))
 
 sum_salary_count = sum(salary_list)/len(salary_list)
 sorted_key_skills = sorted(key_skills.items(), key=lambda x: int(x[1]), reverse=True)
-
-# filename = str(area_req)+'_'+str(text_req)
-# path = 'var/' #var игнорится через гитигнор, специально сюда сохраняю файлы чтобы в гит лишнее не лить
-# with open(path+filename+'.json', 'w', encoding='utf8') as file:
-#     json.dump(sorted_key_skills, file, ensure_ascii=False)
-
 filename = str(area_req)+'_'+str(text_req)
+
 with open(filename+'.json', 'w', encoding='utf8') as file:
     json.dump(sorted_key_skills, file, ensure_ascii=False)
 
@@ -129,4 +115,3 @@ print('Средняя зарплата', sum_salary_count)
 print('Отсортирвоанный список навыков:\n')
 for sorted_skil in sorted_key_skills:
     print(sorted_skil)
-
