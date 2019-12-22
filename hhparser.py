@@ -2,7 +2,6 @@ import requests
 import pprint
 from collections import defaultdict
 import json
-import time
 
 def iter_dict(d, val, indices):
     for k, v in d.items():
@@ -46,31 +45,11 @@ def find_id_area(count, key):
 
 def get_vacancies_url(count_pages, url, text_req, id_area):
     all_vacancies_urls = []
-#    i = 0
     for page in range(count_pages):
-        #print(page)
         params = {'text': text_req, 'area': id_area, 'page': page}
         result = requests.get(url, params=params).json()
-#       pprint.pprint(result)
-#       i += 1
         all_vacancies_urls.append([{'api_url': item['url']} for item in result['items']])
-#       i += 1
-#       if i > 50:
-#           time.sleep(2)
-#    print(all_vacancies_urls)
-    #print(i)
     return all_vacancies_urls
-
-#def get_vacancies_urls(text_req, id_area):
-#    all_vacancies_urls = []
-#    i = 0
-#    for item in items:
-#        i += 1
-#    print(i)
-    #     result = requests.get(url, params=params).json()
-    #     all_vacancies_urls.append([{'api_url': item['url']} for item in result['items']])
-    # #print(all_vacancies_urls)
-    # return all_vacancies_urls
 
 BASE_URL = 'https://api.hh.ru/'
 url_vacancies = f'{BASE_URL}vacancies'
@@ -94,19 +73,13 @@ print('Выбран город', area_req, 'id -', id_area)
 text_req = input('Введите ключевые слова для поска вакансии: ')
 params = {'text': text_req, 'area': id_area}
 
-#ПАРСИМ
-
 result = requests.get(url_vacancies, headers=headers, params=params).json()
 count_vacancies = result['found']
 items_vacancies = result['items']
 count_pages = result['pages']
-#pprint.pprint(result)
-#items = result['items']
-print('СТРАНИЦ', count_pages)
-print('ВАКАНСИЙ', count_vacancies)
-#pprint.pprint(items)
-#get_vacancies_url(items)
-#all_vacancies_urls = get_vacancies_url(count_pages, url_vacancies, text_req, id_area)
+
+#print('СТРАНИЦ', count_pages)
+#print('ВАКАНСИЙ', count_vacancies)
 
 allurls = get_vacancies_url(count_pages, url_vacancies, text_req, id_area)
 count_url_skils = 0
