@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <title>Парсер HH</title>
+    <link rel="icon" href="favicon.ico" sizes="32x32" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:100,200,300,400,500,600,700,800,900" rel="stylesheet">
+    <style>
+        body {
+             background: #a7a7ab url('bg-applicant.jpg') no-repeat center top;
+             background-size: cover;
+        }
+    </style>
+</head>
+<body>
+  <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light ">
+        <a class="navbar-brand" href="index.html">
+          <img src="HH_parser_brand.png" width="120" height="60" alt="">
+        </a>
+        <ul class="nav navbar-light bg-light ">
+              <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" href="index.html">Главная</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="form.html">Парсер</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="contact.html">Контакты</a>
+              </li>
+        </ul>
+    </nav>
+    <br>
+    <br>
+  <!-- Form -->
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1><span class="text-white">Введите параметры поиска</span></h1><br>
+            </div>
+        </div>
+        <br>
+        <form action="result.html">
+            <div class="form-group">
+                <label for="text_req"><span class="text-white">Ключевые слова или вакансия</span></label>
+                <input type="text" name="vacancy" class="form-control" id="text_req" placeholder="Введите ключевые слова для поиска вакансии">
+                <small id="vacancyexample" class="form-text text-muted"><span class="text-white">например: сисадмин</span></small>
+            </div>
+            <br>
+            <div class="form-group">
+                <label for="area_req"><span class="text-white">Город или регион</span></label>
+                <input type="text" name="area" class="form-control" id="area_req" placeholder="Введите название можно с маленькой буквы">
+                <small id="areaexample" class="form-text text-muted"><span class="text-white">например: москва</span></small>
+            </div>
+            <br>
+            <button type="submit" class="btn btn-outline-light">Парсить</button>
+        </form>
+    </div>
+</body>
+</html>
