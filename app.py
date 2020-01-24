@@ -1,19 +1,28 @@
-import flask
+#import flask
 import json
 import time
-import telebot
-from telebot import apihelper
+#import telebot
+#from telebot import apihelper
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
+#updater = Updater(token='1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI', use_context=True)
 
-app = flask.Flask(__name__)
-TOKEN = '1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI'
-WEBHOOK_HOST = 'https://nubot.autosh.ru'
-WEBHOOK_URL_BASE = "%s" % (WEBHOOK_HOST)
-WEBHOOK_URL_PATH = "/%s" % (TOKEN)
+updater.start_webhook(listen='0.0.0.0',
+                      port=8443,
+                      url_path='TOKEN',
+                      key='private.key',
+                      cert='cert.pem',
+                      webhook_url='https://example.com:8443/TOKEN')
 
-furl = WEBHOOK_URL_BASE+WEBHOOK_URL_PATH
-print(furl)
-print(WEBHOOK_URL_PATH)
+#app = flask.Flask(__name__)
+#TOKEN = '1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI'
+#WEBHOOK_HOST = 'https://d822656f.ngrok.io/'
+#WEBHOOK_URL_BASE = "%s" % (WEBHOOK_HOST)
+#WEBHOOK_URL_PATH = "/%s" % (TOKEN)
+
+#furl = WEBHOOK_URL_BASE+WEBHOOK_URL_PATH
+#print(furl)
+#print(WEBHOOK_URL_PATH)
 
 proxies = {
     'https': 'http://81.210.32.100:8080'
@@ -22,17 +31,6 @@ proxies = {
 
 apihelper.proxy = proxies
 bot = telebot.TeleBot(TOKEN)
-
-# Process webhook calls
-@app.route(WEBHOOK_URL_PATH, methods=['POST'])
-def webhook():
-    if flask.request.headers.get('content-type') == 'application/json':
-        json_string = flask.request.get_data().decode('utf-8')
-        update = telebot.types.Update.de_json(json_string)
-        bot.process_new_updates([update])
-        return ''
-    else:
-        flask.abort(403)
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -51,7 +49,16 @@ def echo_message(message):
 def index():
     return '<h1>Бот парсер v1</>'
 
-bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
+# Process webhook calls
+@app.route('/1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI', methods=['POST'])
+def webhook():
+    bot.process_new_updates([telebot.types.Update.de_json(flask.request.stream.read().decode("utf-8"))])
+    return "!", 200
+
+updater.start_webhook(listen='127.0.0.1', port=5000, url_path='TOKEN1')
+updater.bot.set_webhook(webhook_url='https://example.com/TOKEN1',
+                        certificate=open('cert.pem', 'rb'))
+
 #
 if __name__ == '__main__':
      app.run()
