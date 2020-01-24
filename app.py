@@ -4,21 +4,31 @@ import time
 #import telebot
 from telebot import apihelper
 import telegram
-
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
-#updater = Updater(token='1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI', use_context=True)
-proxies = {
-    'https': 'http://81.210.32.100:8080'
- #   'https': 'https://89.22.102.52',
+REQUEST_KWARGS={
+    # "USERNAME:PASSWORD@" is optional, if you need authentication:
+    'proxy_url': 'http://USERNAME:PASSWORD@PROXY_HOST:PROXY_PORT/',
 }
-
-apihelper.proxy = proxies
-
 TOKEN = '1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI'
 bot = telegram.Bot(token=TOKEN)
 
+updater = Updater(token='1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI', use_context=True, request_kwargs=REQUEST_KWARGS)
+dispatcher = updater.dispatcher
+# proxies = {
+#     'https': 'http://81.210.32.100:8080'
+#  #   'https': 'https://89.22.102.52',
+# }
+#
+# apihelper.proxy = proxies
+
 print(bot.get_me())
+
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="I'm a bot, please talk to me!")
+
+start_handler = CommandHandler('start', start)
+dispatcher.add_handler(start_handler)
 
 # updater.start_webhook(listen='0.0.0.0',
 #                       port=8443,
