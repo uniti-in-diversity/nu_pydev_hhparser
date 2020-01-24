@@ -8,12 +8,20 @@ from telebot import apihelper
 app = flask.Flask(__name__)
 TOKEN = '1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI'
 WEBHOOK_HOST = 'https://nubot.autosh.ru'
-WEBHOOK_PORT = 443  # 443, 80, 88 or 8443 (port need to be 'open')
-WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
-WEBHOOK_URL_PATH = "/%s/" % (TOKEN)
+WEBHOOK_URL_BASE = "%s" % (WEBHOOK_HOST)
+WEBHOOK_URL_PATH = "/%s" % (TOKEN)
 
+furl = WEBHOOK_URL_BASE+WEBHOOK_URL_PATH
+print(furl)
+print(WEBHOOK_URL_PATH)
+
+proxies = {
+    'https': 'http://81.210.32.100:8080'
+ #   'https': 'https://89.22.102.52',
+}
+
+apihelper.proxy = proxies
 bot = telebot.TeleBot(TOKEN)
-apihelper.proxy = {'https': 'socks5://nutelebot:h8#jU2mQ@alterlife.me:1818'}
 
 # Process webhook calls
 @app.route(WEBHOOK_URL_PATH, methods=['POST'])
@@ -44,6 +52,6 @@ def index():
     return '<h1>Бот парсер v1</>'
 
 bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)
-
+#
 if __name__ == '__main__':
-    app.run()
+     app.run()
