@@ -58,6 +58,11 @@ dispatcher.add_handler(help_handler)
 #     context.bot.send_message(chat_id=update.effective_chat.id, text=result)
 # get_skills_handler = CommandHandler('get_skills', get_skills, pass_args=True)
 # dispatcher.add_handler(get_skills_handler)
+def facts_to_str(user_data):
+    facts = list()
+    for key, value in user_data.items():
+        facts.append('{} - {}'.format(key, value))
+    return "\n".join(facts).join(['\n', '\n'])
 
 def get_skills(update, context):
     update.message.reply_text(
@@ -68,19 +73,26 @@ def get_skills(update, context):
 def region(update, context):
     user = update.message.from_user
     user_name = user.first_name
-    arg1 = update.message.text
+    #query = update.callback_query
+    #selection = query.data
+    #user_data['selection'] = selection
+    user_data = update.message.text
+    #user_data = arg1
     update.message.reply_text(
         'Теперь введи ключевую фразу для поиска вакансий\n'
         'Отправь /cancel чтобы остановить.\n\n')
     return PHRASE
 
-def phrase(update, context):
+def phrase(update, context, user_data):
     user = update.message.from_user
     user_name = user.first_name
+    old_selection = user_data['selection']
     arg2 = update.message.text
-    update.message.reply_text(
-        'Ищем...')
+    #update.message.reply_text(
+    #    'Ищем...')
     #TODO: тут обращаемся к парсеру
+    result = old_selection + arg2
+    context.bot.send_message(chat_id=update.effective_chat.id, text=result)
     return ConversationHandler.END
 
 def cancel(update, context):
@@ -92,8 +104,8 @@ get_skills_handler = ConversationHandler(
         entry_points=[CommandHandler('get_skills', get_skills)],
 
         states={
-            REGION: [MessageHandler(Filters.text, region)],
-            PHRASE: [MessageHandler(Filters.text, phrase)]
+            REGION: [MessageHandler(Filters.text, region, pass_user_data=True)],
+            PHRASE: [MessageHandler(Filters.text, phrase, pass_user_data=True)]
         },
 
         fallbacks=[CommandHandler('cancel', cancel)]

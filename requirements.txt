@@ -2,4 +2,5 @@ PySocks
 requests
 flask
 uwsgi
-pyTelegramBotAPI
+#pyTelegramBotAPI
+python-telegram-bot
