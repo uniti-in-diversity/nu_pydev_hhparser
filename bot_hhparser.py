@@ -49,25 +49,45 @@ def find_id_area(count, key):
         kcount += 1
         if kcount == intid:
             return k
-#arg1 передаем введеный город от юзера из бота
-#получаем промежточный номер который передаем в другую функцию чтобы найти id города в hh
-#можно проверять есть ли на hh такой город для поиска
+
 def get_intcount_area(arg1):
-    while True:
-        area_req = arg1.lower()
-        name = find_key(all_areas_json, 'name')
-        try:
-            count_area = find_area_intindex(name, area_req)
-            return count_area
-        except ValueError:
-            #print('Город введен с ошибкой, повторите ввод:')
-            return 0
+    '''
+    arg1 передаем введеный город от юзера из бота
+    получаем промежточный номер который передаем в другую функцию чтобы найти id города в hh
+    можно проверять есть ли на hh такой город для поиска
+    :param arg1:
+    :return:
+    '''
+    #while True:
+    area_req = arg1.lower()
+    name = find_key(all_areas_json, 'name')
+    try:
+        count_area = find_area_intindex(name, area_req)
+        return count_area
+    except ValueError:
+        #print('Город введен с ошибкой, повторите ввод:')
+        return 0
 
 def get_id_area(intcount_area):
     key = find_key(all_areas_json, 'id')
     dict_area = find_id_area(intcount_area, key)
     id_area = dict_area[1]
     return id_area
+
+def get_req(arg1, arg2):
+    '''
+    :arg1 = из бота город
+    :arg2 = из бота ключевая фраза
+    :return = параметры для запроса к апи (текст, и город)
+    '''
+    intcount_area = get_intcount_area(arg1)
+    #print(intcount_area)
+    if intcount_area == 0:
+        return False
+    else:
+        id_area = get_id_area(intcount_area)
+        text_req = arg2
+        return id_area, text_req
 
 def get_vacancies_url(count_pages, url, text_req, id_area):
     all_vacancies_urls = []
@@ -79,17 +99,6 @@ def get_vacancies_url(count_pages, url, text_req, id_area):
 
 #print('Выбран город', area_req, 'id -', id_area)
 #text_req = input('Введите ключевые слова для поска вакансии: ')
-
-def get_req(arg1, arg2):
-    '''
-    :arg1 = из бота город
-    :arg2 = из бота ключевая фраза
-    :return = параметры для запроса к апи (текст, и город)
-    '''
-    intcount_area = get_intcount_area(arg1)
-    id_area = get_id_area(intcount_area)
-    text_req = arg2
-    return id_area, text_req
 
 def get_reqs_params(id_area, text_req):
     params = {'text': text_req, 'area': id_area}
@@ -136,7 +145,6 @@ def load_result_from_file(result_filename):
     #print('ИЗ ФУНКЦИИ', result_data)
     return result_data
 
-
 def process_parsing(id_area, text_req, params, area_req, qtop=20):
     result = requests.get(URL_vacancies, headers=headers, params=params).json()
     count_vacancies = result['found']
@@ -144,7 +152,6 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
     #items_vacancies = result['items']
     #print('СТРАНИЦ', count_pages)
     #print('ВАКАНСИЙ', count_vacancies)
-
     allurls = get_vacancies_url(count_pages, URL_vacancies, text_req, id_area)
     count_url_skils = 0
     key_skills = defaultdict(int)
@@ -206,7 +213,7 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
 
     return count_vacancies, sum_salary_count, top_vacancies
 
-def get_result(id_area, text_req):
+def get_result(id_area, text_req, area_req):
     '''
     Главная функция использующая все остальные.
     Передаются параметры для запроса. Проверяет в кэше, если был такой запрос, то выдает результат из текстового файла.
@@ -225,22 +232,21 @@ def get_result(id_area, text_req):
         #print('РЕЗУЛЬТАТ ИЗ КЭША', result)
     else:
         #print('не было такого запроса')
-        if get_intcount_area(arg1):
-            id_area, text_req = get_req(arg1, arg2)
-            params = get_reqs_params(id_area, text_req)
-            #count, salary, top = process_parsing(id_area, text_req, params, arg1)
-            process_parsing(id_area, text_req, params, arg1)
-            filename_result = check_result_from_cache(id_area, text_req)
-            #print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
-            result = load_result_from_file(filename_result)
-            return result
-            #print('ВЫПОЛНЕН ЗАПРОС', result)
-            #print('ВЫПОЛНЕН ЗАПРОС', count, salary, top)
-        else:
-            return False
-            #print('ошибка при вводе города')
+        #if get_intcount_area(arg1):
+        #    id_area, text_req = get_req(arg1, arg2)
+        params = get_reqs_params(id_area, text_req)
+        #count, salary, top = process_parsing(id_area, text_req, params, arg1)
+        process_parsing(id_area, text_req, params, area_req)
+        filename_result = check_result_from_cache(id_area, text_req)
+        #print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
+        result = load_result_from_file(filename_result)
+        return result
 
-arg1 = 'астрахань'
-arg2 = 'бухгалтер'
-id_area, text_req = get_req(arg1, arg2)
-#print(get_result(id_area, text_req))
+# arg1 = 'астрахань'
+# arg2 = 'главный бухгалтер'
+#
+# if get_req(arg1, arg2):
+#     id_area, text_req = get_req(arg1, arg2)
+#     print('YES')
+# else:
+#     print('Ошибка ввода города')

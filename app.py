@@ -1,14 +1,10 @@
-import json
-import time
 import logging
 import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
-from telegram import (ReplyKeyboardMarkup, ReplyKeyboardRemove)
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import bot_hhparser
 
 PROXY={
     'proxy_url': 'socks5://alterlife.me:1818',
-    # Optional, if you need authentication:
     'urllib3_proxy_kwargs': {
         'username': 'nutelebot',
         'password': 'h8#jU2mQ',
@@ -48,56 +44,21 @@ def help(update, context):
 help_handler = CommandHandler('help', help)
 dispatcher.add_handler(help_handler)
 
-# def get_skills(update, context):
-#     #регион
-#     arg1 = context.args[0]
-#     #ключевая фраза
-#     arg2 = context.args[1]
-#     result = arg1 + arg2
-#     result_type = str(type(result))
-#     context.bot.send_message(chat_id=update.effective_chat.id, text=result)
-# get_skills_handler = CommandHandler('get_skills', get_skills, pass_args=True)
-# dispatcher.add_handler(get_skills_handler)
-
 def get_skills(update, context):
-    update.message.reply_text(
-        'Введи город для которого искать вакансии'
-        'Отправь /cancel чтобы остановить.\n\n')
-    return REGION
-
-def region(update, context):
-    user = update.message.from_user
-    user_name = user.first_name
-    arg1 = update.message.text
-    update.message.reply_text(
-        'Теперь введи ключевую фразу для поиска вакансий\n'
-        'Отправь /cancel чтобы остановить.\n\n')
-    return PHRASE
-
-def phrase(update, context):
-    user = update.message.from_user
-    user_name = user.first_name
-    arg2 = update.message.text
-    update.message.reply_text(
-        'Ищем...')
-    #TODO: тут обращаемся к парсеру
-    return ConversationHandler.END
-
-def cancel(update, context):
-    user = update.message.from_user
-    update.message.reply_text('Хорошо, до встречи',)
-    return ConversationHandler.END
-
-get_skills_handler = ConversationHandler(
-        entry_points=[CommandHandler('get_skills', get_skills)],
-
-        states={
-            REGION: [MessageHandler(Filters.text, region)],
-            PHRASE: [MessageHandler(Filters.text, phrase)]
-        },
-
-        fallbacks=[CommandHandler('cancel', cancel)]
-)
+    args = " ".join(context.args)
+    args_list = args.split(' ')
+    #регион
+    arg1 = args_list[0]
+    t_arg2 = args_list[1::]
+    #ключевая фраза
+    arg2 = ' '.join(t_arg2)
+    if bot_hhparser.get_req(arg1, arg2):
+        id_area, text_req = bot_hhparser.get_req(arg1, arg2)
+        result = (bot_hhparser.get_result(id_area, text_req, arg1))
+        context.bot.send_message(chat_id=update.effective_chat.id, text=result)
+    else:
+        context.bot.send_message(chat_id=update.effective_chat.id, text='Ошибочно введен город, Чтобы повторить запрос, снова полностью отправьте команду, проверив правильность написания города.')
+get_skills_handler = CommandHandler('get_skills', get_skills, pass_args=True)
 dispatcher.add_handler(get_skills_handler)
 
 def chating(update, context):
@@ -112,6 +73,6 @@ dispatcher.add_handler(unknown_handler)
 
 updater.bot.set_webhook("https://81e9ae3c.ngrok.io/" + TOKEN)
 updater.start_webhook(listen='0.0.0.0',
-                      port=5000,
+                      port=8888,
                       url_path=TOKEN)
 
