@@ -98,6 +98,11 @@ def get_reqs_params(id_area, text_req):
     return params
 
 def compare_file_create_date(filename):
+    '''
+    Сравнивает текущую дату с датой создания файла (без времени, только дата)
+    :param filename: путь к файлу
+    :return: True или False
+    '''
     today = str(datetime.date.today())
     fd = os.path.getctime(filename)
     fd = str(datetime.datetime.fromtimestamp(fd))
@@ -107,18 +112,48 @@ def compare_file_create_date(filename):
     else:
         return False
 
-def process(id_area, text_req, params, area_req, qtop=20):
-    global request_history
+def check_result_from_cache(id_area, text_req):
+    '''
+    Передаем ID региона и запрос, ищем в истории запросов по ключу,
+    если находим возвращаем имя файла с результатом запроса.
+    :return: str имя файла
+    '''
+    #data = {}
+    key_h = text_req + '_' + id_area
+    with open('request_history.json', encoding='utf-8') as file:
+        data = json.load(file)
+    result_filename = data.get(key_h)
+    return result_filename
+    #print(result_filename)
+
+def load_result_from_cache(result_filename):
+    '''
+    Выдача резльтатов по запросу из кэша (из файла с результатом ранее выполненого запроса)
+    :param result_filename: имя файла с результатом запроса выполненного ранее.
+    :return: dict результат запроса из файла ранее выполненного запроса
+    '''
+    # загружаем json с результатом запроса в переменную
+    with open(result_filename, encoding='utf-8') as file:
+        result_data = json.load(file)
+    #print('ИЗ ФУНКЦИИ', result_data)
+    return result_data
+
+# def get_top_N_vacancies(qtop = 20,):
+#     top_vacancies = []
+#     for i in range(qtop):
+#         top_vacancies.append(sorted_key_skills[i])
+#     #print([x for x in top_vacancies], sep=",")
+#     return count_vacancies, sum_salary_count, top_vacancies
+
+def process_parsing(id_area, text_req, params, area_req, qtop=20):
     result = requests.get(URL_vacancies, headers=headers, params=params).json()
     count_vacancies = result['found']
-    #items_vacancies = result['items']
     count_pages = result['pages']
-
+    #items_vacancies = result['items']
     #print('СТРАНИЦ', count_pages)
     #print('ВАКАНСИЙ', count_vacancies)
     #if not count_vacancies:
     #    return False
-
     allurls = get_vacancies_url(count_pages, URL_vacancies, text_req, id_area)
     count_url_skils = 0
     key_skills = defaultdict(int)
@@ -159,30 +194,36 @@ def process(id_area, text_req, params, area_req, qtop=20):
     with open('request_history.json', mode='w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False)
 
-    #request_history[key_h] = str(filename)+'.json'
-    #with open('request_history.json', 'w', encoding='utf8') as file:
-    #    json.dump(request_history, file, ensure_ascii=False)
-
-    #print(request_history)
-    print('Всего вакансий', count_vacancies)
-    print('Средняя зарплата', sum_salary_count)
-    print('Отсортирвоанный список навыков по частоте упоминания в вакансиях:\n')
+    #print('Всего вакансий', count_vacancies)
+    #print('Средняя зарплата', sum_salary_count)
+    #print('Отсортирвоанный список навыков по частоте упоминания в вакансиях:\n')
 
     top_vacancies = []
+    print('ДЛИННА РЕЗУЛЬТАТА', len(sorted_key_skills))
+    #если навыков мало, меньше запрашиваемого топ, проверям длинну результата и если меньш чем 20 то выводим топ результаты полученной длинны
+    if len(sorted_key_skills) < qtop:
+        qtop = int(len(sorted_key_skills))
     for i in range(qtop):
         top_vacancies.append(sorted_key_skills[i])
-    print([x for x in top_vacancies], sep=",")
+    return count_vacancies, sum_salary_count, top_vacancies
 
-# def load_result_from_file(file, data):
-#     now = datetime.datetime.now()
-#
-#     if date
-
-arg1 = 'омск'
+arg1 = 'магадан'
 arg2 = 'сисадмин'
-if get_intcount_area(arg1):
-    id_area, text_req = get_req(arg1, arg2)
-    params = get_reqs_params(id_area, text_req)
-    process(id_area, text_req, params, arg1)
+id_area, text_req = get_req(arg1, arg2)
+
+if check_result_from_cache(id_area, text_req):
+    print('Запрос был выполнен ранее, результат берем из файла кэша')
+    file_result_from_cache = check_result_from_cache(id_area, text_req)
+    print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
+    result_from_chache = load_result_from_cache(file_result_from_cache)
+    print('РЕЗУЛЬТАТ ИЗ КЭША', result_from_chache)
 else:
-    print('ошибка при вводе города')
+    print('не было такого запроса')
+    if get_intcount_area(arg1):
+        id_area, text_req = get_req(arg1, arg2)
+        params = get_reqs_params(id_area, text_req)
+        count, salary, top = process_parsing(id_area, text_req, params, arg1)
+        print('ВЫПОЛНЕН ЗАПРОС', count, salary, top)
+    else:
+        print('ошибка при вводе города')
+
