@@ -1,7 +1,6 @@
 import requests
 import datetime
 import os
-import pprint
 from collections import defaultdict
 import json
 
@@ -10,7 +9,6 @@ URL_vacancies = f'{BASE_URL}vacancies'
 url_areas = f'{BASE_URL}areas'
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36"}
 all_areas_json = requests.get(url_areas, headers=headers).json()
-
 
 def iter_dict(d, val, indices):
     for k, v in d.items():
@@ -138,12 +136,6 @@ def load_result_from_file(result_filename):
     #print('ИЗ ФУНКЦИИ', result_data)
     return result_data
 
-# def get_top_N_vacancies(qtop = 20,):
-#     top_vacancies = []
-#     for i in range(qtop):
-#         top_vacancies.append(sorted_key_skills[i])
-#     #print([x for x in top_vacancies], sep=",")
-#     return count_vacancies, sum_salary_count, top_vacancies
 
 def process_parsing(id_area, text_req, params, area_req, qtop=20):
     result = requests.get(URL_vacancies, headers=headers, params=params).json()
@@ -152,8 +144,7 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
     #items_vacancies = result['items']
     #print('СТРАНИЦ', count_pages)
     #print('ВАКАНСИЙ', count_vacancies)
-    #if not count_vacancies:
-    #    return False
+
     allurls = get_vacancies_url(count_pages, URL_vacancies, text_req, id_area)
     count_url_skils = 0
     key_skills = defaultdict(int)
@@ -195,13 +186,12 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
         json.dump(data, file, ensure_ascii=False)
 
     #кол-во вакансий, сред.ЗП, ВСЕ навыки отсортированы
-    #return count_vacancies, sum_salary_count, sorted_key_skills
     #print('Всего вакансий', count_vacancies)
     #print('Средняя зарплата', sum_salary_count)
     #print('Отсортирвоанный список навыков по частоте упоминания в вакансиях:\n')
 
     top_vacancies = []
-    print('ДЛИННА РЕЗУЛЬТАТА', len(sorted_key_skills))
+    #print('ДЛИННА РЕЗУЛЬТАТА', len(sorted_key_skills))
     # если навыков мало, меньше запрашиваемого топ, проверям длинну результата и если меньш чем 20 то выводим топ результаты полученной длинны
     if len(sorted_key_skills) < qtop:
         qtop = int(len(sorted_key_skills))
@@ -250,7 +240,7 @@ def get_result(id_area, text_req):
             return False
             #print('ошибка при вводе города')
 
-arg1 = 'самара'
+arg1 = 'астрахань'
 arg2 = 'бухгалтер'
 id_area, text_req = get_req(arg1, arg2)
-get_result(id_area, text_req)
+print(get_result(id_area, text_req))
