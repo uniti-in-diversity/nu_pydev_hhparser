@@ -126,15 +126,15 @@ def check_result_from_cache(id_area, text_req):
     return result_filename
     #print(result_filename)
 
-def load_result_from_cache(result_filename):
+def load_result_from_file(result_filename):
     '''
     Выдача резльтатов по запросу из кэша (из файла с результатом ранее выполненого запроса)
     :param result_filename: имя файла с результатом запроса выполненного ранее.
     :return: dict результат запроса из файла ранее выполненного запроса
     '''
-    # загружаем json с результатом запроса в переменную
-    with open(result_filename, encoding='utf-8') as file:
-        result_data = json.load(file)
+    # загружаем txt с результатом запроса в переменную
+    with open(result_filename, 'r', encoding='utf-8') as file:
+        result_data = file.read()
     #print('ИЗ ФУНКЦИИ', result_data)
     return result_data
 
@@ -176,16 +176,16 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
     sorted_key_skills = sorted(key_skills.items(), key=lambda x: int(x[1]), reverse=True)
     filename = str(area_req)+'_'+str(text_req)
 
-    #загружаем json с историей запросов
+    #выгружаем результат ВСЕ НАВЫКИ в JSON формате
     with open(filename+'.json', 'w', encoding='utf8') as file:
         json.dump(sorted_key_skills, file, ensure_ascii=False)
 
     #формируем строки для внесения в историю запросов
     #key_h - ключ словаря запрос_код региона, file_h = имя файла с результатом запроса
     key_h = text_req + '_' + id_area
-    file_h = str(filename)+'.json'
+    file_h = str(filename)+'.txt'
 
-    #загружаем json с историей запросов в переменную, добавялем новый запрос
+    #загружаем json с историей запросов в словарь, добавляем новый запрос словарь
     with open('request_history.json', encoding='utf-8') as file:
         data = json.load(file)
     data[key_h] = file_h
@@ -194,36 +194,63 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
     with open('request_history.json', mode='w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False)
 
+    #кол-во вакансий, сред.ЗП, ВСЕ навыки отсортированы
+    #return count_vacancies, sum_salary_count, sorted_key_skills
     #print('Всего вакансий', count_vacancies)
     #print('Средняя зарплата', sum_salary_count)
     #print('Отсортирвоанный список навыков по частоте упоминания в вакансиях:\n')
 
     top_vacancies = []
     print('ДЛИННА РЕЗУЛЬТАТА', len(sorted_key_skills))
-    #если навыков мало, меньше запрашиваемого топ, проверям длинну результата и если меньш чем 20 то выводим топ результаты полученной длинны
+    # если навыков мало, меньше запрашиваемого топ, проверям длинну результата и если меньш чем 20 то выводим топ результаты полученной длинны
     if len(sorted_key_skills) < qtop:
         qtop = int(len(sorted_key_skills))
     for i in range(qtop):
         top_vacancies.append(sorted_key_skills[i])
+
+    #Выгружаем в текстовик форматированный вывод
+    with open(filename+'.txt', 'w', encoding='utf8') as file:
+        file.write('Кол-во вакансий, %s\n' % count_vacancies)
+        file.write('Средняя зарплата, %s рублей\n' % sum_salary_count)
+        file.write('Топ навыков, %s\n' % top_vacancies)
+
     return count_vacancies, sum_salary_count, top_vacancies
 
-arg1 = 'магадан'
-arg2 = 'сисадмин'
-id_area, text_req = get_req(arg1, arg2)
-
-if check_result_from_cache(id_area, text_req):
-    print('Запрос был выполнен ранее, результат берем из файла кэша')
-    file_result_from_cache = check_result_from_cache(id_area, text_req)
-    print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
-    result_from_chache = load_result_from_cache(file_result_from_cache)
-    print('РЕЗУЛЬТАТ ИЗ КЭША', result_from_chache)
-else:
-    print('не было такого запроса')
-    if get_intcount_area(arg1):
-        id_area, text_req = get_req(arg1, arg2)
-        params = get_reqs_params(id_area, text_req)
-        count, salary, top = process_parsing(id_area, text_req, params, arg1)
-        print('ВЫПОЛНЕН ЗАПРОС', count, salary, top)
+def get_result(id_area, text_req):
+    '''
+    Главная функция использующая все остальные.
+    Передаются параметры для запроса. Проверяет в кэше, если был такой запрос, то выдает результат из текстового файла.
+    Если не было ранее такого запроса
+    :param id_area: код региона
+    :param text_req: ключевая фраза
+    :return: результат запроса
+    '''
+    #id_area, text_req = get_req(arg1, arg2)
+    if check_result_from_cache(id_area, text_req):
+        #print('Запрос был выполнен ранее, результат берем из файла кэша')
+        filename_result = check_result_from_cache(id_area, text_req)
+        #print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
+        result = load_result_from_file(filename_result)
+        return result
+        #print('РЕЗУЛЬТАТ ИЗ КЭША', result)
     else:
-        print('ошибка при вводе города')
+        #print('не было такого запроса')
+        if get_intcount_area(arg1):
+            id_area, text_req = get_req(arg1, arg2)
+            params = get_reqs_params(id_area, text_req)
+            #count, salary, top = process_parsing(id_area, text_req, params, arg1)
+            process_parsing(id_area, text_req, params, arg1)
+            filename_result = check_result_from_cache(id_area, text_req)
+            #print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
+            result = load_result_from_file(filename_result)
+            return result
+            #print('ВЫПОЛНЕН ЗАПРОС', result)
+            #print('ВЫПОЛНЕН ЗАПРОС', count, salary, top)
+        else:
+            return False
+            #print('ошибка при вводе города')
 
+arg1 = 'самара'
+arg2 = 'бухгалтер'
+id_area, text_req = get_req(arg1, arg2)
+get_result(id_area, text_req)
