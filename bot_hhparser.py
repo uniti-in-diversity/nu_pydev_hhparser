@@ -11,6 +11,7 @@ url_areas = f'{BASE_URL}areas'
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36"}
 all_areas_json = requests.get(url_areas, headers=headers).json()
 
+
 def iter_dict(d, val, indices):
     for k, v in d.items():
         if k == val:
@@ -107,6 +108,7 @@ def compare_file_create_date(filename):
         return False
 
 def process(id_area, text_req, params, area_req, qtop=20):
+    global request_history
     result = requests.get(URL_vacancies, headers=headers, params=params).json()
     count_vacancies = result['found']
     #items_vacancies = result['items']
@@ -135,23 +137,33 @@ def process(id_area, text_req, params, area_req, qtop=20):
                     salary_list.append(salary_to)
             count_url_skils += 1
 
-
-    #print(key_skills)
-    #print(count_url_skils)
-    #print(len(salary_list))
-
     sum_salary_count = int(sum(salary_list)/len(salary_list))
     sorted_key_skills = sorted(key_skills.items(), key=lambda x: int(x[1]), reverse=True)
     filename = str(area_req)+'_'+str(text_req)
 
+    #загружаем json с историей запросов
     with open(filename+'.json', 'w', encoding='utf8') as file:
         json.dump(sorted_key_skills, file, ensure_ascii=False)
 
-    request_history = {}
+    #формируем строки для внесения в историю запросов
+    #key_h - ключ словаря запрос_код региона, file_h = имя файла с результатом запроса
     key_h = text_req + '_' + id_area
-    request_history[key_h] = str(filename)+'.json'
+    file_h = str(filename)+'.json'
 
-    print(request_history)
+    #загружаем json с историей запросов в переменную, добавялем новый запрос
+    with open('request_history.json', encoding='utf-8') as file:
+        data = json.load(file)
+    data[key_h] = file_h
+
+    #выгружаем обратно в json обновленный словарь с историей запросов
+    with open('request_history.json', mode='w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False)
+
+    #request_history[key_h] = str(filename)+'.json'
+    #with open('request_history.json', 'w', encoding='utf8') as file:
+    #    json.dump(request_history, file, ensure_ascii=False)
+
+    #print(request_history)
     print('Всего вакансий', count_vacancies)
     print('Средняя зарплата', sum_salary_count)
     print('Отсортирвоанный список навыков по частоте упоминания в вакансиях:\n')
@@ -166,8 +178,8 @@ def process(id_area, text_req, params, area_req, qtop=20):
 #
 #     if date
 
-arg1 = 'казань'
-arg2 = 'системный администратор'
+arg1 = 'омск'
+arg2 = 'сисадмин'
 if get_intcount_area(arg1):
     id_area, text_req = get_req(arg1, arg2)
     params = get_reqs_params(id_area, text_req)
