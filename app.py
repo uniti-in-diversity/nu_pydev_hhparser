@@ -1,5 +1,6 @@
 import logging
 import telegram
+import os
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import bot_hhparser
 
@@ -71,7 +72,8 @@ def unknown(update, context):
 unknown_handler = MessageHandler(Filters.command, unknown)
 dispatcher.add_handler(unknown_handler)
 
+PORT = int(os.environ.get('PORT', '8443'))
 updater.start_webhook(listen='0.0.0.0',
-                      port=5000,
+                      port=PORT,
                       url_path=TOKEN)
 updater.bot.set_webhook("https://nu-bot-hhparcer.herokuapp.com/" + TOKEN)
