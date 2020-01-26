@@ -78,8 +78,8 @@ count_vacancies = result['found']
 items_vacancies = result['items']
 count_pages = result['pages']
 
-#print('СТРАНИЦ', count_pages)
-#print('ВАКАНСИЙ', count_vacancies)
+print('СТРАНИЦ', count_pages)
+print('ВАКАНСИЙ', count_vacancies)
 
 allurls = get_vacancies_url(count_pages, url_vacancies, text_req, id_area)
 count_url_skils = 0
