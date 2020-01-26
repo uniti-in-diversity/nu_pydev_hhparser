@@ -243,4 +243,4 @@ def get_result(id_area, text_req):
 arg1 = 'астрахань'
 arg2 = 'бухгалтер'
 id_area, text_req = get_req(arg1, arg2)
-print(get_result(id_area, text_req))
+#print(get_result(id_area, text_req))
