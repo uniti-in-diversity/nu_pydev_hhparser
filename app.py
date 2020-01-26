@@ -76,4 +76,4 @@ PORT = int(os.environ.get('PORT', '8443'))
 updater.start_webhook(listen='0.0.0.0',
                       port=PORT,
                       url_path=TOKEN)
-updater.bot.set_webhook("https://nu-bot-hhparcer.herokuapp.com/" + TOKEN)
+updater.bot.set_webhook("https://nu-bot-hhparser.herokuapp.com/" + TOKEN)
