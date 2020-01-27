@@ -72,7 +72,8 @@ def unknown(update, context):
 unknown_handler = MessageHandler(Filters.command, unknown)
 dispatcher.add_handler(unknown_handler)
 
-PORT = int(os.environ.get('PORT', '8443'))
+#если на хероку разворачивать то порт из переменной окружения берем
+PORT = int(os.environ.get('PORT'))
 updater.start_webhook(listen='0.0.0.0',
                       port=PORT,
                       url_path=TOKEN)
