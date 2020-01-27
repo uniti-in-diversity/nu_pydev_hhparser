@@ -1,6 +1,7 @@
 import logging
 import telegram
 import os
+import json
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import bot_hhparser
 
@@ -11,7 +12,15 @@ PROXY={
         'password': 'h8#jU2mQ',
     }
 }
-TOKEN = '1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI'
+
+with open("config.json", "r") as file:
+    config = json.load(file)
+
+TOKEN = config['TOKEN']
+WEBHOOK_URL = config['WEBHOOK_URL']
+PORT = config['PORT']
+
+#OKEN = '1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI'
 bot = telegram.Bot(token=TOKEN)
 
 updater = Updater(token='1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI', use_context=True, request_kwargs=PROXY)
@@ -73,8 +82,11 @@ unknown_handler = MessageHandler(Filters.command, unknown)
 dispatcher.add_handler(unknown_handler)
 
 #если на хероку разворачивать то порт из переменной окружения берем
-PORT = int(os.environ.get('PORT'))
+
+if 'HEROKU_ENV' in os.environ:
+    PORT = int(os.environ.get('PORT'))
+
 updater.start_webhook(listen='0.0.0.0',
                       port=PORT,
                       url_path=TOKEN)
-updater.bot.set_webhook("https://nu-bot-hhparser.herokuapp.com/" + TOKEN)
+updater.bot.set_webhook(WEBHOOK_URL + TOKEN)
