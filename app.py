@@ -85,7 +85,7 @@ dispatcher.add_handler(unknown_handler)
 
 if 'HEROKU_ENV' in os.environ:
     PORT = int(os.environ.get('PORT'))
-print(PORT)
+
 updater.start_webhook(listen='0.0.0.0',
                       port=PORT,
                       url_path=TOKEN)
