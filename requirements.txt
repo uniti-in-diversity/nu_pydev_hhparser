@@ -1,0 +1,3 @@
+PySocks
+requests
+python-telegram-bot
