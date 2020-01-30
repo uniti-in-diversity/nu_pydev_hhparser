@@ -1,5 +1,5 @@
 {
   "PORT":"8282",
-  "WEBHOOK_URL":"https://61ddf489.ngrok.io/",
+  "WEBHOOK_URL":"https://nu-bot-hhparser.herokuapp.com/",
   "TOKEN": "1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI"
 }
