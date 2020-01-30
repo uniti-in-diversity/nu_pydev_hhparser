@@ -1,4 +1,5 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+import bot_hhparser
 
 web = Flask(__name__)
 
@@ -10,11 +11,25 @@ def index():
     }
     return render_template('index.html', **context)
 
-@web.route('/form/')
-def form():
+@web.route('/form/', methods=['POST'])
+def post_form():
+    vacancy = request.form['vacancy']
+    area = request.form['area']
+    if bot_hhparser.get_req(area, vacancy):
+        id_area, text_req = bot_hhparser.get_req(area, vacancy)
+        result = (bot_hhparser.get_result(id_area, text_req, area))
+        return render_template('result.html', result=result)
+    else:
+        error = 'Неверно введен город, повторите ввод данных'
+        return render_template('form.html', error=error)
+
+@web.route('/form/', methods=['GET'])
+def get_form():
     return render_template('form.html')
 
-
+@web.route('/result/')
+def result():
+    return render_template('result.html')
 
 @web.route('/contacts/')
 def contacts():
