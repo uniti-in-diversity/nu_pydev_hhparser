@@ -2,13 +2,13 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
     <title>Парсер HH</title>
     <link rel="icon" href="favicon.ico" sizes="32x32" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css?family=Montserrat:100,200,300,400,500,600,700,800,900" rel="stylesheet">
     <style>
         body {
-             background: #a7a7ab url('bg-applicant.jpg') no-repeat center top;
+             background: #a7a7ab url('/static/img/bg-applicant.jpg') no-repeat center top;
              background-size: cover;
         }
     </style>
@@ -36,7 +36,7 @@
     <div class="container">
         <div class="row">
             <div class="col">
-               <h1><span class="badge badge-secondary">HeadHanter Парсер</span></h1>
+               <h1><span class="badge badge-secondary">{{title}}</span></h1>
             </div>
         </div>
     </div>
@@ -46,7 +46,7 @@
                 <br>
                 <h5>Чтобы начать, нажмите кнопку</h5>
                 <br>
-                <a href="form.html"><button type="button" class="btn btn-outline-light">Парсить вакансии</button></a>
+                <a href="form.html"><button type="button" class="btn btn-outline-light">{{button_name}}</button></a>
             </div>
         </div>
     </div>
