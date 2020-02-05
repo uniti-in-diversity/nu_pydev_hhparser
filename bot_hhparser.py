@@ -3,12 +3,14 @@ import datetime
 import os
 from collections import defaultdict
 import json
+import sqlite3
 
 BASE_URL = 'https://api.hh.ru/'
 URL_vacancies = f'{BASE_URL}vacancies'
 url_areas = f'{BASE_URL}areas'
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36"}
 all_areas_json = requests.get(url_areas, headers=headers).json()
+FILE_DB = 'hhdb.db'
 
 def iter_dict(d, val, indices):
     for k, v in d.items():
@@ -213,11 +215,18 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
 
     return count_vacancies, sum_salary_count, top_vacancies
 
+# def put_result_to_db(id_area, text_req, area_req, top_vacancies):
+#     conn = sqlite3.connect(FILE_DB, check_same_thread=False)
+#     cursor = conn.cursor()
+#     cursor.execute('INSERT INTO region (region_code, region_name) VALUES (?, ?)', (id_area, area_req))
+#     conn.close()
+#     pass
+
 def get_result(id_area, text_req, area_req):
     '''
     Главная функция использующая все остальные.
     Передаются параметры для запроса. Проверяет в кэше, если был такой запрос, то выдает результат из текстового файла.
-    Если не было ранее такого запроса
+    Если не было ранее такого запроса, парсит, пишет в кеш, выдает результат.
     :param id_area: код региона
     :param text_req: ключевая фраза
     :return: результат запроса
@@ -242,11 +251,28 @@ def get_result(id_area, text_req, area_req):
         result = load_result_from_file(filename_result)
         return result
 
-# arg1 = 'астрахань'
-# arg2 = 'главный бухгалтер'
+arg1 = 'астрахань'
+arg2 = 'главный бухгалтер'
 #
 # if get_req(arg1, arg2):
 #     id_area, text_req = get_req(arg1, arg2)
 #     print('YES')
 # else:
 #     print('Ошибка ввода города')
+conn = sqlite3.connect('hhdb.db', check_same_thread=False)
+cursor = conn.cursor()
+if get_req(arg1, arg2):
+    id_area, text_req = get_req(arg1, arg2)
+    print(type(id_area))
+    print(id_area)
+    int_id_area = int(id_area)
+    print(type(int_id_area))
+    cursor.execute('INSERT INTO region (region_code, region_name) VALUES (?, ?)', (id_area, arg1))
+    conn.commit()
+    print('После записи в БД')
+    conn.close()
+    result = (get_result(id_area, text_req, arg1))
+    print(result)
+else:
+    error = 'Неверно введен город, повторите ввод данных'
+    print(error)
