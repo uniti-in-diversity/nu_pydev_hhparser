@@ -10,7 +10,8 @@ URL_vacancies = f'{BASE_URL}vacancies'
 url_areas = f'{BASE_URL}areas'
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36"}
 all_areas_json = requests.get(url_areas, headers=headers).json()
-FILE_DB = 'hhdb.db'
+conn = sqlite3.connect('hhdb.db', check_same_thread=False)
+cursor = conn.cursor()
 
 def iter_dict(d, val, indices):
     for k, v in d.items():
@@ -148,6 +149,14 @@ def load_result_from_file(result_filename):
     return result_data
 
 def process_parsing(id_area, text_req, params, area_req, qtop=20):
+    cursor.execute('INSERT INTO region (region_code, region_name) VALUES (?, ?)', (id_area, area_req))
+    cursor.execute('INSERT INTO vacancy (vacancy_name, region_id) VALUES (?, ?)', (text_req, id_area))
+    conn.commit()
+    cursor.execute('SELECT id FROM vacancy where vacancy_name=? and region_id=?', (text_req, id_area))
+    conn.commit()
+    vacancy_id = cursor.fetchone()[0]
+    #print('vacancy_id', vacancy_id)
+    #print(type(vacancy_id))
     result = requests.get(URL_vacancies, headers=headers, params=params).json()
     count_vacancies = result['found']
     count_pages = result['pages']
@@ -165,6 +174,16 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
             for skil in one_vacancy['key_skills']:
                 skill_name = skil['name']
                 key_skills[skill_name] += 1
+                #print('счетчик скила', skill_name, key_skills[skill_name])
+                cursor.execute('INSERT INTO skills (skill_name) VALUES (?)', ([skill_name]))
+                conn.commit()
+                cursor.execute('SELECT id FROM skills where skill_name=?', ([skill_name]))
+                skill_id = cursor.fetchone()[0]
+                conn.commit()
+                cursor.execute('INSERT INTO vacancy_skills (vacancy_id, skill_id) VALUES (?, ?)', (vacancy_id, skill_id))
+                conn.commit()
+                cursor.execute('UPDATE vacancy_skills SET count = count+1 where vacancy_id=? and skill_id =?', (vacancy_id, skill_id))
+                conn.commit()
             salary = one_vacancy['salary']
             if salary is not None:
                 salary_to = salary.get('to')
@@ -175,6 +194,7 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
     sum_salary_count = int(sum(salary_list)/len(salary_list))
     sorted_key_skills = sorted(key_skills.items(), key=lambda x: int(x[1]), reverse=True)
     filename = str(area_req)+'_'+str(text_req)
+    #TODO: допилить таблицу vacancy добавить поля avg_salary и quant_vacancies в ретурне можно вообще ничего не возвращать
 
     #выгружаем результат ВСЕ НАВЫКИ в JSON формате
     with open(filename+'.json', 'w', encoding='utf8') as file:
@@ -212,15 +232,24 @@ def process_parsing(id_area, text_req, params, area_req, qtop=20):
         file.write('Кол-во вакансий, %s\n' % count_vacancies)
         file.write('Средняя зарплата, %s рублей\n' % sum_salary_count)
         file.write('Топ навыков, %s\n' % top_vacancies)
-
+    conn.close()
     return count_vacancies, sum_salary_count, top_vacancies
 
-# def put_result_to_db(id_area, text_req, area_req, top_vacancies):
-#     conn = sqlite3.connect(FILE_DB, check_same_thread=False)
-#     cursor = conn.cursor()
-#     cursor.execute('INSERT INTO region (region_code, region_name) VALUES (?, ?)', (id_area, area_req))
-#     conn.close()
-#     pass
+
+def get_result_from_db(id_area, text_req):
+#TODO: делать запрос в таблицу vacancy и выдирать среднюю ЗП и кол-во вакансий, ретерн делать 3 шт - ЗП, кол-во вакансий, скилы
+    conn = sqlite3.connect('hhdb.db', check_same_thread=False)
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT id FROM vacancy where vacancy_name=? and region_id=?', (text_req, id_area))
+    vacancy_id = cursor.fetchone()
+
+    cursor.execute('select s.skill_name, vs.count from vacancy v, skills s, vacancy_skills vs '
+                   'where vs.vacancy_id = v.id and vs.skill_id = s.id and vs.vacancy_id = ? '
+                   'ORDER BY vs.count DESC', (vacancy_id))
+    result = cursor.fetchall()
+    return result
+
 
 def get_result(id_area, text_req, area_req):
     '''
@@ -233,44 +262,44 @@ def get_result(id_area, text_req, area_req):
     '''
     #id_area, text_req = get_req(arg1, arg2)
     if check_result_from_cache(id_area, text_req):
-        #print('Запрос был выполнен ранее, результат берем из файла кэша')
-        filename_result = check_result_from_cache(id_area, text_req)
-        #print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
-        result = load_result_from_file(filename_result)
+        result = get_result_from_db(id_area, text_req)
+        ####print('Запрос был выполнен ранее, результат берем из файла кэша')
+        #filename_result = check_result_from_cache(id_area, text_req)
+        ####print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
+        #result = load_result_from_file(filename_result)
         return result
-        #print('РЕЗУЛЬТАТ ИЗ КЭША', result)
+        ####print('РЕЗУЛЬТАТ ИЗ КЭША', result)
     else:
-        #print('не было такого запроса')
-        #if get_intcount_area(arg1):
-        #    id_area, text_req = get_req(arg1, arg2)
+        ####print('не было такого запроса')
+        ###if get_intcount_area(arg1):
+        ####    id_area, text_req = get_req(arg1, arg2)
         params = get_reqs_params(id_area, text_req)
         #count, salary, top = process_parsing(id_area, text_req, params, arg1)
         process_parsing(id_area, text_req, params, area_req)
-        filename_result = check_result_from_cache(id_area, text_req)
-        #print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
-        result = load_result_from_file(filename_result)
+        result = get_result_from_db(id_area, text_req)
+        #filename_result = check_result_from_cache(id_area, text_req)
+        #####print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
+        #result = load_result_from_file(filename_result)
         return result
 
-arg1 = 'астрахань'
-arg2 = 'главный бухгалтер'
+arg1 = 'магадан'
+arg2 = 'сисадмин'
 #
 # if get_req(arg1, arg2):
 #     id_area, text_req = get_req(arg1, arg2)
 #     print('YES')
 # else:
 #     print('Ошибка ввода города')
-conn = sqlite3.connect('hhdb.db', check_same_thread=False)
-cursor = conn.cursor()
+
 if get_req(arg1, arg2):
     id_area, text_req = get_req(arg1, arg2)
-    print(type(id_area))
-    print(id_area)
-    int_id_area = int(id_area)
-    print(type(int_id_area))
-    cursor.execute('INSERT INTO region (region_code, region_name) VALUES (?, ?)', (id_area, arg1))
-    conn.commit()
-    print('После записи в БД')
-    conn.close()
+    #print(type(id_area))
+    #print(id_area)
+    #print(type(int_id_area))
+    # cursor.execute('INSERT INTO region (region_code, region_name) VALUES (?, ?)', (id_area, arg1))
+    # conn.commit()
+    # print('После записи в БД')
+    # conn.close()
     result = (get_result(id_area, text_req, arg1))
     print(result)
 else:
