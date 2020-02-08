@@ -5,13 +5,14 @@ from collections import defaultdict
 import json
 import sqlite3
 
+FILEDB = 'hhdb.db'
 BASE_URL = 'https://api.hh.ru/'
 URL_vacancies = f'{BASE_URL}vacancies'
 url_areas = f'{BASE_URL}areas'
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36"}
 all_areas_json = requests.get(url_areas, headers=headers).json()
-conn = sqlite3.connect('hhdb.db', check_same_thread=False)
-cursor = conn.cursor()
+#conn = sqlite3.connect('hhdb.db', check_same_thread=False)
+#cursor = conn.cursor()
 
 def iter_dict(d, val, indices):
     for k, v in d.items():
@@ -61,7 +62,6 @@ def get_intcount_area(arg1):
     :param arg1:
     :return:
     '''
-    #while True:
     area_req = arg1.lower()
     name = find_key(all_areas_json, 'name')
     try:
@@ -149,6 +149,8 @@ def load_result_from_file(result_filename):
     return result_data
 
 def process_parsing(id_area, text_req, params, area_req):
+    conn = sqlite3.connect(FILEDB, check_same_thread=False)
+    cursor = conn.cursor()
     cursor.execute('INSERT INTO region (region_code, region_name) VALUES (?, ?)', (id_area, area_req))
     cursor.execute('INSERT INTO vacancy (vacancy_name, region_id) VALUES (?, ?)', (text_req, id_area))
     conn.commit()
@@ -177,19 +179,6 @@ def process_parsing(id_area, text_req, params, area_req):
             for skil in one_vacancy['key_skills']:
                 skill_name = skil['name']
                 key_skills[skill_name] += 1
-                # print('Пишем в базу', skill_name)
-                # cursor.execute('INSERT or REPLACE INTO skills (skill_name) VALUES (?)', ([skill_name]))
-                # conn.commit()
-                # print('получаем скил_айди записанного скила')
-                # cursor.execute('SELECT id FROM skills where skill_name=?', ([skill_name]))
-                # skill_id = cursor.fetchone()[0]
-                # conn.commit()
-                # print(skill_id)
-                # print('вставляем или реплейсим в ваканси_скилз')
-                # cursor.execute('INSERT or REPLACE INTO vacancy_skills (vacancy_id, skill_id) VALUES (?, ?)', (vacancy_id, skill_id))
-                # conn.commit()
-                # cursor.execute('UPDATE vacancy_skills SET count = count+1 where vacancy_id=? and skill_id =?', (vacancy_id, skill_id))
-                # conn.commit()
             salary = one_vacancy['salary']
             if salary is not None:
                 salary_to = salary.get('to')
@@ -198,21 +187,14 @@ def process_parsing(id_area, text_req, params, area_req):
             count_url_skils += 1
 
     for key_skill in key_skills:
-        #print(key_skill)
-        #cursor.execute('INSERT or REPLACE INTO skills (skill_name) VALUES (?)', ([key_skill]))
-        #conn.commit()
-        #print(key_skills[key_skill])
         cursor.execute('INSERT INTO vacancy_skills (vacancy_id, skill_name, count) VALUES (?, ?, ?)', (vacancy_id, key_skill, key_skills[key_skill]))
         conn.commit()
-        #cursor.execute('UPDATE vacancy_skills SET count=? where vacancy_id=? and skill_id =?', (vacancy_id, skill_id))
-        #conn.commit()
 
     sum_salary_count = int(sum(salary_list)/len(salary_list))
     cursor.execute('UPDATE vacancy SET avg_salary = ? where id=?', (sum_salary_count, vacancy_id))
     conn.commit()
-
+    conn.close()
     #sorted_key_skills = sorted(key_skills.items(), key=lambda x: int(x[1]), reverse=True)
-
     #выгружаем результат ВСЕ НАВЫКИ в JSON формате
     #with open(filename+'.json', 'w', encoding='utf8') as file:
     #    json.dump(sorted_key_skills, file, ensure_ascii=False)
@@ -230,44 +212,29 @@ def process_parsing(id_area, text_req, params, area_req):
     #выгружаем обратно в json обновленный словарь с историей запросов
     with open('request_history.json', mode='w', encoding='utf-8') as file:
         json.dump(data, file, ensure_ascii=False)
-
-    #кол-во вакансий, сред.ЗП, ВСЕ навыки отсортированы
-    #print('Всего вакансий', count_vacancies)
-    #print('Средняя зарплата', sum_salary_count)
-    #print('Отсортирвоанный список навыков по частоте упоминания в вакансиях:\n')
-    #print('ДЛИННА РЕЗУЛЬТАТА', len(sorted_key_skills))
-    # если навыков мало, меньше запрашиваемого топ, проверям длинну результата и если меньш чем 20 то выводим топ результаты полученной длинны
-
-    #Выгружаем в текстовик форматированный вывод
-    #with open(filename+'.txt', 'w', encoding='utf8') as file:
-    #    file.write('Кол-во вакансий, %s\n' % count_vacancies)
-    #    file.write('Средняя зарплата, %s рублей\n' % sum_salary_count)
-    #    file.write('Топ навыков, %s\n' % top_vacancies)
-    #conn.close()
-    #return count_vacancies, sum_salary_count, top_vacancies
     return True
+
+def prepare_result_for_bot(count_vacancies, sum_salary_count, top_skills, area_req, text_req):
+    filename = str(area_req) + '_' + str(text_req) + '.txt'
+    #Выгружаем в текстовик форматированный вывод
+    with open(filename, 'w', encoding='utf8') as file:
+       file.write('Кол-во вакансий: %s\n' % count_vacancies)
+       file.write('Средняя зарплата: %s рублей\n' % sum_salary_count)
+       file.write('Топ 20 навыков: %s\n' % top_skills)
+    return filename
 
 
 def get_result_from_db(id_area, text_req, qtop=20):
-    #qtop = 20
-    #top_vacancies = []
-    conn = sqlite3.connect('hhdb.db', check_same_thread=False)
+    conn = sqlite3.connect(FILEDB, check_same_thread=False)
     cursor = conn.cursor()
-
     cursor.execute('SELECT id FROM vacancy where vacancy_name=? and region_id=?', (text_req, id_area))
     vacancy_id = cursor.fetchone()
-
-    # cursor.execute('select s.skill_name, vs.count from vacancy v, skills s, vacancy_skills vs '
-    #                'where vs.vacancy_id = v.id and vs.skill_id = s.id and vs.vacancy_id = ? '
-    #                'ORDER BY vs.count DESC', (vacancy_id))
-    # skills_rating = cursor.fetchall()
     cursor.execute('select v.avg_salary, v.total_vacancy from vacancy v where v.id = ?', (vacancy_id))
     query_result = (cursor.fetchall())
     sum_salary_count, count_vacancies  = query_result[0]
 
     cursor.execute('SELECT id FROM vacancy where vacancy_name=? and region_id=?', (text_req, id_area))
     vacancy_id = cursor.fetchone()
-    #print(vacancy_id)
     cursor.execute('select vs.skill_name, vs.count from vacancy v, vacancy_skills vs '
                    'where vs.vacancy_id = v.id and vs.vacancy_id = ?'
                    'ORDER BY vs.count DESC', (vacancy_id))
@@ -277,63 +244,48 @@ def get_result_from_db(id_area, text_req, qtop=20):
         qtop = int(len(all_skills))
     for i in range(qtop):
         top_skills.append(all_skills[i])
-
-    #print(top_skills)
+    conn.close()
     return count_vacancies, sum_salary_count, top_skills
 
 
-def get_result(id_area, text_req, area_req):
+def get_result(id_area, text_req, area_req, telebot=False):
     '''
     Главная функция использующая все остальные.
-    Передаются параметры для запроса. Проверяет в кэше, если был такой запрос, то выдает результат из текстового файла.
-    Если не было ранее такого запроса, парсит, пишет в кеш, выдает результат.
+    Передаются параметры для запроса. Проверяет в кэше, если был такой запрос, то выдает результат из базы.
+    Если не было ранее такого запроса, парсит, пишет в базу, выдает результат.
     :param id_area: код региона
     :param text_req: ключевая фраза
-    :return: результат запроса
+    :param area_req: название региона поиска
+    :param telebot: признак откуда запрос от бота или сайта
+    :return: если для сайта то объекты, елси для бота то путь к текстововму файлу со сформированным сообщением
     '''
-    #id_area, text_req = get_req(arg1, arg2)
     if check_result_from_cache(id_area, text_req):
-        result = get_result_from_db(id_area, text_req)
-        ####print('Запрос был выполнен ранее, результат берем из файла кэша')
-        #filename_result = check_result_from_cache(id_area, text_req)
-        ####print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
-        #result = load_result_from_file(filename_result)
-        return result
-        ####print('РЕЗУЛЬТАТ ИЗ КЭША', result)
+        count_vacancies, sum_salary_count, top_skills = get_result_from_db(id_area, text_req)
+        if telebot:
+            filename = prepare_result_for_bot(count_vacancies, sum_salary_count, top_skills, area_req, text_req)
+            return filename
+        else:
+            return count_vacancies, sum_salary_count, top_skills
     else:
-        ####print('не было такого запроса')
-        ###if get_intcount_area(arg1):
-        ####    id_area, text_req = get_req(arg1, arg2)
         params = get_reqs_params(id_area, text_req)
-        #count, salary, top = process_parsing(id_area, text_req, params, arg1)
         process_parsing(id_area, text_req, params, area_req)
-        result = get_result_from_db(id_area, text_req)
-        #filename_result = check_result_from_cache(id_area, text_req)
-        #####print('ИМЯ ФАЙЛА ИЗ ИСТОРИИ', file_result_from_cache)
-        #result = load_result_from_file(filename_result)
-        return result
+        count_vacancies, sum_salary_count, top_skills = get_result_from_db(id_area, text_req)
+        if telebot:
+            filename = prepare_result_for_bot(count_vacancies, sum_salary_count, top_skills, area_req, text_req)
+            return filename
+        else:
+            return count_vacancies, sum_salary_count, top_skills
+
 
 arg1 = 'самара'
 arg2 = 'сисадмин'
-#
-# if get_req(arg1, arg2):
-#     id_area, text_req = get_req(arg1, arg2)
-#     print('YES')
-# else:
-#     print('Ошибка ввода города')
 
 if get_req(arg1, arg2):
     id_area, text_req = get_req(arg1, arg2)
-    #print(type(id_area))
-    #print(id_area)
-    #print(type(int_id_area))
-    # cursor.execute('INSERT INTO region (region_code, region_name) VALUES (?, ?)', (id_area, arg1))
-    # conn.commit()
-    # print('После записи в БД')
-    # conn.close()
-    #result = (get_result(id_area, text_req, arg1))
-    count_vacancies, sum_salary_count, top_skills = (get_result(id_area, text_req, arg1))
-    print(count_vacancies, sum_salary_count, top_skills)
+    filename = (get_result(id_area, text_req, arg1, True))
+    result = load_result_from_file(filename)
+    print(result)
+    #print(count_vacancies, sum_salary_count, top_skills)
 else:
     error = 'Неверно введен город, повторите ввод данных'
     print(error)

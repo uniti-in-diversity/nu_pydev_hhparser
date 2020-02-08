@@ -17,8 +17,8 @@ def post_form():
     area = request.form['area']
     if bot_hhparser.get_req(area, vacancy):
         id_area, text_req = bot_hhparser.get_req(area, vacancy)
-        result = (bot_hhparser.get_result(id_area, text_req, area))
-        return render_template('result.html', result=result)
+        count_vacancies, sum_salary_count, top_skills = (bot_hhparser.get_result(id_area, text_req, area))
+        return render_template('result.html', count_vacancies=count_vacancies, sum_salary_count=sum_salary_count, top_skills=top_skills)
     else:
         error = 'Неверно введен город, повторите ввод данных'
         return render_template('form.html', error=error)

@@ -5,7 +5,7 @@ import json
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import bot_hhparser
 
-PROXY={
+PROXY = {
     'proxy_url': 'socks5://alterlife.me:1818',
     'urllib3_proxy_kwargs': {
         'username': 'nutelebot',
@@ -20,7 +20,6 @@ TOKEN = config['TOKEN']
 WEBHOOK_URL = config['WEBHOOK_URL']
 PORT = config['PORT']
 
-#OKEN = '1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI'
 bot = telegram.Bot(token=TOKEN)
 
 updater = Updater(token='1087000896:AAH7nwyqoV3ESLy6ygxz-GmCwgQylv3ypjI', use_context=True, request_kwargs=PROXY)
@@ -64,7 +63,8 @@ def get_skills(update, context):
     arg2 = ' '.join(t_arg2)
     if bot_hhparser.get_req(arg1, arg2):
         id_area, text_req = bot_hhparser.get_req(arg1, arg2)
-        result = (bot_hhparser.get_result(id_area, text_req, arg1))
+        filename = (bot_hhparser.get_result(id_area, text_req, arg1, True))
+        result = bot_hhparser.load_result_from_file(filename)
         context.bot.send_message(chat_id=update.effective_chat.id, text=result)
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text='Ошибочно введен город, Чтобы повторить запрос, снова полностью отправьте команду, проверив правильность написания города.')
@@ -82,7 +82,6 @@ unknown_handler = MessageHandler(Filters.command, unknown)
 dispatcher.add_handler(unknown_handler)
 
 #если на хероку разворачивать то порт из переменной окружения берем
-
 if 'HEROKU_ENV' in os.environ:
     PORT = int(os.environ.get('PORT'))
 print(PORT)
