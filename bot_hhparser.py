@@ -277,15 +277,15 @@ def get_result(id_area, text_req, area_req, telebot=False):
             return count_vacancies, sum_salary_count, top_skills
 
 
-arg1 = 'самара'
-arg2 = 'сисадмин'
-
-if get_req(arg1, arg2):
-    id_area, text_req = get_req(arg1, arg2)
-    filename = (get_result(id_area, text_req, arg1, True))
-    result = load_result_from_file(filename)
-    print(result)
-    #print(count_vacancies, sum_salary_count, top_skills)
-else:
-    error = 'Неверно введен город, повторите ввод данных'
-    print(error)
+# arg1 = 'краснодар'
+# arg2 = 'сисадмин'
+#
+# if get_req(arg1, arg2):
+#     id_area, text_req = get_req(arg1, arg2)
+#     filename = (get_result(id_area, text_req, arg1, True))
+#     result = load_result_from_file(filename)
+#     print(result)
+#     #print(count_vacancies, sum_salary_count, top_skills)
+# else:
+#     error = 'Неверно введен город, повторите ввод данных'
+#     print(error)
