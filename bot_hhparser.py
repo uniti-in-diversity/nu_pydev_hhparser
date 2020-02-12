@@ -5,14 +5,13 @@ from collections import defaultdict
 import json
 import sqlite3
 
+
 FILEDB = 'hhdb.db'
 BASE_URL = 'https://api.hh.ru/'
 URL_vacancies = f'{BASE_URL}vacancies'
 url_areas = f'{BASE_URL}areas'
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36"}
 all_areas_json = requests.get(url_areas, headers=headers).json()
-#conn = sqlite3.connect('hhdb.db', check_same_thread=False)
-#cursor = conn.cursor()
 
 def iter_dict(d, val, indices):
     for k, v in d.items():
