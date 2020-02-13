@@ -4,9 +4,9 @@ import os
 from collections import defaultdict
 import json
 import sqlite3
+from module import base_orm
 
-
-FILEDB = 'hhdb.db'
+#FILEDB = 'hhdb.db'
 BASE_URL = 'https://api.hh.ru/'
 URL_vacancies = f'{BASE_URL}vacancies'
 url_areas = f'{BASE_URL}areas'
@@ -148,8 +148,10 @@ def load_result_from_file(result_filename):
     return result_data
 
 def process_parsing(id_area, text_req, params, area_req):
-    conn = sqlite3.connect(FILEDB, check_same_thread=False)
-    cursor = conn.cursor()
+    #conn = sqlite3.connect(FILEDB, check_same_thread=False)
+    #cursor = conn.cursor()
+    region = base_orm.Region(id_area, area_req)
+
     cursor.execute('INSERT INTO region (region_code, region_name) VALUES (?, ?)', (id_area, area_req))
     cursor.execute('INSERT INTO vacancy (vacancy_name, region_id) VALUES (?, ?)', (text_req, id_area))
     conn.commit()
