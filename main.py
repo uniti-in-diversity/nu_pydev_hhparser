@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request
-import bot_hhparser
+from module import services, parser
 
 web = Flask(__name__)
 
@@ -15,9 +15,9 @@ def index():
 def post_form():
     vacancy = request.form['vacancy']
     area = request.form['area']
-    if bot_hhparser.get_req(area, vacancy):
-        id_area, text_req = bot_hhparser.get_req(area, vacancy)
-        count_vacancies, sum_salary_count, top_skills = (bot_hhparser.get_result(id_area, text_req, area))
+    if services.get_req(area, vacancy):
+        id_area, text_req = services.get_req(area, vacancy)
+        count_vacancies, sum_salary_count, top_skills = parser.get_result(id_area, text_req, area)
         return render_template('result.html', count_vacancies=count_vacancies, sum_salary_count=sum_salary_count, top_skills=top_skills)
     else:
         error = 'Неверно введен город, повторите ввод данных'

@@ -2,7 +2,6 @@ import requests
 import json
 
 BASE_URL = 'https://api.hh.ru/'
-#URL_vacancies = f'{BASE_URL}vacancies'
 url_areas = f'{BASE_URL}areas'
 headers = {"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.79 Safari/537.36"}
 all_areas_json = requests.get(url_areas, headers=headers).json()
@@ -61,7 +60,7 @@ def get_intcount_area(arg1):
         count_area = find_area_intindex(name, area_req)
         return count_area
     except ValueError:
-        #print('Город введен с ошибкой, повторите ввод:')
+        # print('Город введен с ошибкой, повторите ввод:')
         return 0
 
 def get_id_area(intcount_area):
@@ -77,7 +76,6 @@ def get_req(arg1, arg2):
     :return = параметры для запроса к апи (текст, и город)
     '''
     intcount_area = get_intcount_area(arg1)
-    #print(intcount_area)
     if intcount_area == 0:
         return False
     else:
@@ -93,27 +91,10 @@ def get_vacancies_url(count_pages, url, text_req, id_area):
         all_vacancies_urls.append([{'api_url': item['url']} for item in result['items']])
     return all_vacancies_urls
 
-#print('Выбран город', area_req, 'id -', id_area)
-#text_req = input('Введите ключевые слова для поска вакансии: ')
 
 def get_reqs_params(id_area, text_req):
     params = {'text': text_req, 'area': id_area}
     return params
-
-# def compare_file_create_date(filename):
-#     '''
-#     Сравнивает текущую дату с датой создания файла (без времени, только дата)
-#     :param filename: путь к файлу
-#     :return: True или False
-#     '''
-#     today = str(datetime.date.today())
-#     fd = os.path.getctime(filename)
-#     fd = str(datetime.datetime.fromtimestamp(fd))
-#     filedate = fd[0:10]
-#     if filedate == today:
-#         return True
-#     else:
-#         return False
 
 def check_result_from_cache(id_area, text_req):
     '''
@@ -121,13 +102,11 @@ def check_result_from_cache(id_area, text_req):
     если находим возвращаем имя файла с результатом запроса.
     :return: str имя файла
     '''
-    #data = {}
     key_h = text_req + '_' + id_area
     with open('request_history.json', encoding='utf-8') as file:
         data = json.load(file)
     result_filename = data.get(key_h)
     return result_filename
-    #print(result_filename)
 
 def load_result_from_file(result_filename):
     '''
@@ -138,5 +117,4 @@ def load_result_from_file(result_filename):
     # загружаем txt с результатом запроса в переменную
     with open(result_filename, 'r', encoding='utf-8') as file:
         result_data = file.read()
-    #print('ИЗ ФУНКЦИИ', result_data)
     return result_data

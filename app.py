@@ -3,7 +3,7 @@ import telegram
 import os
 import json
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-import bot_hhparser
+from module import services, parser
 
 PROXY = {
     'proxy_url': 'socks5://alterlife.me:1818',
@@ -61,10 +61,10 @@ def get_skills(update, context):
     t_arg2 = args_list[1::]
     #ключевая фраза
     arg2 = ' '.join(t_arg2)
-    if bot_hhparser.get_req(arg1, arg2):
-        id_area, text_req = bot_hhparser.get_req(arg1, arg2)
-        filename = (bot_hhparser.get_result(id_area, text_req, arg1, True))
-        result = bot_hhparser.load_result_from_file(filename)
+    if services.get_req(arg1, arg2):
+        id_area, text_req = services.get_req(arg1, arg2)
+        filename = (parser.get_result_for_bot(id_area, text_req, arg1))
+        result = services.load_result_from_file(filename)
         context.bot.send_message(chat_id=update.effective_chat.id, text=result)
     else:
         context.bot.send_message(chat_id=update.effective_chat.id, text='Ошибочно введен город, Чтобы повторить запрос, снова полностью отправьте команду, проверив правильность написания города.')
