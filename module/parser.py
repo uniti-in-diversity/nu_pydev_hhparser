@@ -1,18 +1,6 @@
 import json
 from module import base_orm, services
 
-# def check_result_from_cache(id_area, text_req):
-#     '''
-#     Передаем ID региона и запрос, ищем в истории запросов по ключу,
-#     если находим возвращаем имя файла с результатом запроса.
-#     :return: str имя файла
-#     '''
-#     key_h = text_req + '_' + id_area
-#     with open('request_history.json', encoding='utf-8') as file:
-#         data = json.load(file)
-#     result_filename = data.get(key_h)
-#     return result_filename
-
 def prepare_result_for_bot(count_vacancies, sum_salary_count, top_skills, area_req, text_req):
     '''
     :return: имя файла с текстом для сообщения
