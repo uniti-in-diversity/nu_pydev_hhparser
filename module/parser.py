@@ -1,4 +1,3 @@
-import json
 from module import base_orm, services
 
 def prepare_result_for_bot(count_vacancies, sum_salary_count, top_skills, area_req, text_req):
