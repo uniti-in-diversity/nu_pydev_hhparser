@@ -18,8 +18,8 @@ Base = declarative_base()
 
 class Region(Base):
     __tablename__ = 'region'
-    region_code = Column(Integer, primary_key=True)
-    region_name = Column(String)
+    region_code = Column(Integer, unique=True, primary_key=True)
+    region_name = Column(String, unique=True)
 
     def __init__(self, region_code, region_name):
         self.region_code = region_code
@@ -61,14 +61,16 @@ class Vacancy_skills(Base):
         return "<Vacancy_skills('%s','%s', %s)>" % (self.vacancy_id, self.skill_name, self.count)
 
 Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
+
 #session = scoped_session(sessionmaker(bind=engine))
 
 def process_parsing(id_area, text_req, params, area_req):
+    Session = sessionmaker(bind=engine)
     session = Session()
-    region = Region(id_area, area_req)
+    if session.query(Region).filter(Region.region_code == id_area).count() == 0:
+        region = Region(id_area, area_req)
+        session.add(region)
     vacancy = Vacancy(text_req, id_area, None, None)
-    session.add(region)
     session.add(vacancy)
     session.commit()
     vacancy_id_req = session.query(Vacancy).filter(Vacancy.vacancy_name == text_req).filter(Vacancy.region_id == id_area).one()
@@ -124,6 +126,7 @@ def process_parsing(id_area, text_req, params, area_req):
     return True
 
 def get_result_from_db(id_area, text_req, qtop=20):
+    Session = sessionmaker(bind=engine)
     session = Session()
     vacancy_id_req = session.query(Vacancy).filter(Vacancy.vacancy_name == text_req).filter(Vacancy.region_id == id_area).one()
     vacancy_id = vacancy_id_req.id
@@ -134,5 +137,6 @@ def get_result_from_db(id_area, text_req, qtop=20):
     vacancy_skills_req = session.query(Vacancy_skills).filter(Vacancy_skills.vacancy_id == vacancy_id).order_by(Vacancy_skills.count.desc()).limit(qtop).all()
     for result in vacancy_skills_req:
         top_skills.append(result.skill_name + ' ' + str(result.count))
+    session.close()
     return count_vacancies, sum_salary_count, top_skills
 
