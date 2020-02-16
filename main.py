@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 from module import services, parser
+import os
 
 web = Flask(__name__)
 
@@ -42,5 +43,9 @@ def contacts():
     }
     return render_template('contacts.html', **context)
 
+PORT = 5000
+if 'HEROKU_ENV' in os.environ:
+    PORT = int(os.environ.get('PORT'))
+
 if __name__ == "__main__":
-    web.run(debug=True)
+    web.run(port=PORT, debug=True)

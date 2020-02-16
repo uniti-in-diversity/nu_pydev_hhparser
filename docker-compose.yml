@@ -1,0 +1,18 @@
+version: '3.7'
+
+services:
+
+   nu-site-parser:
+     build: ./flask
+     hostname: nu-site-parser
+     volumes:
+        - ./flask/app:/app:z
+     restart: always
+     ports:
+       - "8282:8282"
+     networks:
+      - net-intservices
+
+networks:
+  net-intservices:
+    external: true
