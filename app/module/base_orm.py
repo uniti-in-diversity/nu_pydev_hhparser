@@ -1,4 +1,4 @@
-from app.module import services
+from module import services
 import requests
 import json
 from collections import defaultdict
@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, String, create_engine, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-FILEDB = 'hhdb.db'
+
 BASE_URL = 'https://api.hh.ru/'
 URL_vacancies = f'{BASE_URL}vacancies'
 url_areas = f'{BASE_URL}areas'

@@ -3,17 +3,21 @@ services:
   nu-site-parser:
     build: ./
     hostname: nu-site-parser
+    stdin_open: true
+    tty: true
     volumes:
       - ./app:/app:z
     restart: always
     ports:
       - "8282:8282"
     networks:
-      - intservices
+      - hhparser-net
 
-  revers-proxy:
+  nu-site-proxy:
     image: nginx:latest
-    hostname: revers-proxy
+    hostname: nu-site-proxy
+    stdin_open: true
+    tty: true
     volumes:
       - ./nginx:/etc/nginx/:z
     restart: always
@@ -21,9 +25,9 @@ services:
       - "80:80"
       - "443:443"
     networks:
-      - intservices
+      - hhparser-net
 
 networks:
-  intservices:
-    name: net-intservices
+  hhparser-net:
+    name: hhparser-net
     driver: bridge

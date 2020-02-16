@@ -1,7 +1,6 @@
 uwsgi
 PySocks
 requests
-python-telegram-bot
 flask
 gunicorn
 SQLAlchemy

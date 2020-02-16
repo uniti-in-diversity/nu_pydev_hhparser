@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
-from app.module import services
-from app.module import parser
+from module import services
+from module import parser
 import logging
 
 web = Flask(__name__)
