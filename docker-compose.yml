@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   nu-site-parser:
-    build: ./app
+    build: ./
     hostname: nu-site-parser
     volumes:
       - ./app:/app:z
