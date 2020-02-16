@@ -1,8 +1,15 @@
 from flask import Flask, render_template, request
 from app.module import services
 from app.module import parser
+import logging
 
 web = Flask(__name__)
+
+root_logger= logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler('webapp_debug.log', 'a', 'utf-8')
+handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+root_logger.addHandler(handler)
 
 @web.route('/')
 def index():
