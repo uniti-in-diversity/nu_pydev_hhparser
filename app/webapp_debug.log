@@ -1,8 +1,1 @@
-2020-02-16 23:13:38,712 - werkzeug - INFO -  * Restarting with stat
-2020-02-16 23:13:39,602 - werkzeug - WARNING -  * Debugger is active!
-2020-02-16 23:13:39,606 - werkzeug - INFO -  * Debugger PIN: 327-533-270
-2020-02-16 23:13:39,611 - werkzeug - INFO -  * Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
-2020-02-16 23:14:03,032 - werkzeug - INFO - 127.0.0.1 - - [16/Feb/2020 23:14:03] "GET / HTTP/1.1" 200 -
-2020-02-16 23:14:14,896 - werkzeug - INFO - 127.0.0.1 - - [16/Feb/2020 23:14:14] "GET /contacts/ HTTP/1.1" 200 -
-2020-02-16 23:14:16,622 - werkzeug - INFO - 127.0.0.1 - - [16/Feb/2020 23:14:16] "GET / HTTP/1.1" 200 -
-2020-02-16 23:14:17,150 - werkzeug - INFO - 127.0.0.1 - - [16/Feb/2020 23:14:17] "GET / HTTP/1.1" 200 -
+
