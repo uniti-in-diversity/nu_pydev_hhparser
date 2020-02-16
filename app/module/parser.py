@@ -1,4 +1,6 @@
-from module import base_orm, services
+from app.module import services
+from app.module import base_orm
+
 
 def prepare_result_for_bot(count_vacancies, sum_salary_count, top_skills, area_req, text_req):
     '''

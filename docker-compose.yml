@@ -1,18 +1,29 @@
 version: '3.7'
-
 services:
+  nu-site-parser:
+    build: ./app
+    hostname: nu-site-parser
+    volumes:
+      - ./app:/app:z
+    restart: always
+    ports:
+      - "8282:8282"
+    networks:
+      - intservices
 
-   nu-site-parser:
-     build: ./flask
-     hostname: nu-site-parser
-     volumes:
-        - ./flask/app:/app:z
-     restart: always
-     ports:
-       - "8282:8282"
-     networks:
-      - net-intservices
+  revers-proxy:
+    image: nginx:latest
+    hostname: revers-proxy
+    volumes:
+      - ./nginx:/etc/nginx/:z
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - intservices
 
 networks:
-  net-intservices:
-    external: true
+  intservices:
+    name: net-intservices
+    driver: bridge
